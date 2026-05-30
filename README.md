@@ -468,7 +468,39 @@ resources or demo data.
 
 ## Setup
 
-### Prerequisites
+### Run Floci UI using Docker
+
+The easiest way to run Floci UI is using the published Docker image or `docker-compose`. 
+Floci UI needs a running Floci core server to talk to (e.g., LocalStack/Floci on port 4566).
+
+**Linux, Windows, and macOS (Docker Compose)**:
+If you have the `docker-compose.yml` file from this repository, simply run:
+```bash
+docker-compose up -d
+```
+The UI will be available at `http://localhost:4566`.
+
+**Windows and macOS (Docker CLI)**:
+```bash
+docker run -d --name floci-ui \
+  -p 4566:3000 \
+  -e FLOCI_ENDPOINT=http://host.docker.internal:4566 \
+  krish9130/floci-ui:latest
+```
+
+**Linux (Docker CLI)**:
+On Linux, you need to explicitly map `host.docker.internal` to the host gateway:
+```bash
+docker run -d --name floci-ui \
+  -p 4566:3000 \
+  --add-host host.docker.internal:host-gateway \
+  -e FLOCI_ENDPOINT=http://host.docker.internal:4566 \
+  krish9130/floci-ui:latest
+```
+
+### Build from source
+
+#### Prerequisites
 
 - Node.js 20 or newer.
 - pnpm 9 or newer.
