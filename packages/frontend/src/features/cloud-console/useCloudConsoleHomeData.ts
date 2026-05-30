@@ -18,10 +18,7 @@ import {
 import type {CloudProvider} from '@/types/cloud'
 import type {ConsoleServiceCard} from './types'
 
-const SERVICE_PLACEHOLDERS = [
-    {id: 'queue', label: 'Queue', icon: MessageSquare},
-    {id: 'function', label: 'Function', icon: Zap},
-]
+// Placeholders removed as they are now wired
 
 export function useCloudConsoleHomeData(cloud: CloudProvider) {
     const cloudsQuery = useCloudsQuery()
@@ -35,12 +32,16 @@ export function useCloudConsoleHomeData(cloud: CloudProvider) {
     const storageResourcesQuery = useCloudConsoleResourcesQuery({...queryContext, service: 'storage'})
     const k8sResourcesQuery = useCloudConsoleResourcesQuery({...queryContext, service: 'k8s'})
     const databaseResourcesQuery = useCloudConsoleResourcesQuery({...queryContext, service: 'database'})
+    const queueResourcesQuery = useCloudConsoleResourcesQuery({...queryContext, service: 'queue'})
+    const functionResourcesQuery = useCloudConsoleResourcesQuery({...queryContext, service: 'function'})
 
     const status = statusQuery.data
     const serviceCards = useMemo<ConsoleServiceCard[]>(() => {
         const storage = servicesQuery.data?.find((service) => service.service === 'storage')
         const k8s = servicesQuery.data?.find((service) => service.service === 'k8s')
         const database = servicesQuery.data?.find((service) => service.service === 'database')
+        const queue = servicesQuery.data?.find((service) => service.service === 'queue')
+        const func = servicesQuery.data?.find((service) => service.service === 'function')
 
         return [
             {
@@ -70,18 +71,33 @@ export function useCloudConsoleHomeData(cloud: CloudProvider) {
                 route: `/cloud-explorer/${cloud}/database`,
                 meta: serviceMetaLabel(status, databaseResourcesQuery.isLoading, 'instances'),
             },
-            ...SERVICE_PLACEHOLDERS.map((service) => ({
-                ...service,
-                status: 'coming_soon' as const,
-                count: undefined,
-                route: undefined,
-                meta: 'not wired yet',
-            })),
+            {
+                id: 'queue',
+                label: queue?.displayName ?? 'Queue',
+                status: queue?.availability ?? 'coming_soon',
+                count: queueResourcesQuery.data?.length,
+                icon: MessageSquare,
+                route: `/cloud-explorer/${cloud}/queue`,
+                meta: serviceMetaLabel(status, queueResourcesQuery.isLoading, 'queues'),
+            },
+            {
+                id: 'function',
+                label: func?.displayName ?? 'Function',
+                status: func?.availability ?? 'coming_soon',
+                count: functionResourcesQuery.data?.length,
+                icon: Zap,
+                route: `/cloud-explorer/${cloud}/function`,
+                meta: serviceMetaLabel(status, functionResourcesQuery.isLoading, 'functions'),
+            },
         ]
     }, [
         cloud,
         databaseResourcesQuery.data,
         databaseResourcesQuery.isLoading,
+        queueResourcesQuery.data,
+        queueResourcesQuery.isLoading,
+        functionResourcesQuery.data,
+        functionResourcesQuery.isLoading,
         k8sResourcesQuery.data,
         k8sResourcesQuery.isLoading,
         servicesQuery.data,
@@ -90,8 +106,8 @@ export function useCloudConsoleHomeData(cloud: CloudProvider) {
         storageResourcesQuery.isLoading,
     ])
 
-    const resourcesLoading = storageResourcesQuery.isLoading || k8sResourcesQuery.isLoading || databaseResourcesQuery.isLoading
-    const resourcesError = storageResourcesQuery.isError || k8sResourcesQuery.isError || databaseResourcesQuery.isError
+    const resourcesLoading = storageResourcesQuery.isLoading || k8sResourcesQuery.isLoading || databaseResourcesQuery.isLoading || queueResourcesQuery.isLoading || functionResourcesQuery.isLoading
+    const resourcesError = storageResourcesQuery.isError || k8sResourcesQuery.isError || databaseResourcesQuery.isError || queueResourcesQuery.isError || functionResourcesQuery.isError
 
     return {
         cloudsQuery,
@@ -104,7 +120,9 @@ export function useCloudConsoleHomeData(cloud: CloudProvider) {
         activeServicesDetail: activeServicesDetailFor(cloud),
         resourceCount: (storageResourcesQuery.data?.length ?? 0)
             + (k8sResourcesQuery.data?.length ?? 0)
-            + (databaseResourcesQuery.data?.length ?? 0),
+            + (databaseResourcesQuery.data?.length ?? 0)
+            + (queueResourcesQuery.data?.length ?? 0)
+            + (functionResourcesQuery.data?.length ?? 0),
         resourceDetail: resourceDetailFor(cloud, status, statusQuery.isLoading, resourcesLoading, resourcesError),
         serviceCards,
     }

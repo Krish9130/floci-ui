@@ -12,7 +12,6 @@ import {
     Moon,
     Network,
     Radio,
-    Search,
     Server,
     Shield,
     SlidersHorizontal,
@@ -29,6 +28,7 @@ import {fetchHealth, SERVICE_META} from '@/api/services'
 
 import type {ServiceName} from '@/api/types'
 import {useCloudWatchIngestor} from '@/features/cloudwatch/hooks/useCloudWatchIngestor'
+import {GlobalSearch} from './GlobalSearch'
 
 const ICONS: Record<ServiceName | 'dashboard', React.ElementType> = {
     dashboard: LayoutDashboard,
@@ -167,11 +167,7 @@ export function Layout() {
 
             <div className="shell">
                 <header className="topbar">
-                    <div className="search">
-                        <Search size={14}/>
-                        <input placeholder="Search services, features, docs, and more"/>
-                        <span className="kbd">/</span>
-                    </div>
+                    <GlobalSearch />
                     <button className="icon-btn" onClick={toggle} title="Toggle theme">
                         {theme === 'dark' ? <Sun size={14}/> : <Moon size={14}/>}
                     </button>
