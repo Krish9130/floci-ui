@@ -78,7 +78,7 @@ export const SERVICE_META: Array<{
     name: "secretsmanager",
     displayName: "Secrets Manager",
     route: "/secretsmanager",
-    implemented: false,
+    implemented: true,
     resourceLabel: "secrets",
   },
   {

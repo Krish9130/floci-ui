@@ -203,6 +203,14 @@ export const apiEndpointKeys = {
         list: "aws.iam.policies.list",
       },
     },
+    secretsManager: {
+      secrets: {
+        list: "aws.secretsmanager.secrets.list",
+        create: "aws.secretsmanager.secrets.create",
+        get: "aws.secretsmanager.secrets.get",
+        delete: "aws.secretsmanager.secrets.delete",
+      },
+    },
   },
 } as const;
 
@@ -749,6 +757,10 @@ export const endpointRegistry: EndpointRegistry = new Map([
   [apiEndpointKeys.aws.iam.roles.list,        { path: "/iam/roles", method: "GET", telemetry: { provider: "aws", service: "iam" } }],
   [apiEndpointKeys.aws.iam.users.list,        { path: "/iam/users", method: "GET", telemetry: { provider: "aws", service: "iam" } }],
   [apiEndpointKeys.aws.iam.policies.list,     { path: "/iam/policies", method: "GET", telemetry: { provider: "aws", service: "iam" } }],
+  [apiEndpointKeys.aws.secretsManager.secrets.list, { path: "/secretsmanager/secrets", method: "GET", telemetry: { provider: "aws", service: "secretsmanager" } }],
+  [apiEndpointKeys.aws.secretsManager.secrets.create, { path: "/secretsmanager/secrets", method: "POST", telemetry: { provider: "aws", service: "secretsmanager" } }],
+  [apiEndpointKeys.aws.secretsManager.secrets.get, { path: "/secretsmanager/secrets/:id/value", method: "GET", telemetry: { provider: "aws", service: "secretsmanager" } }],
+  [apiEndpointKeys.aws.secretsManager.secrets.delete, { path: "/secretsmanager/secrets/:id", method: "DELETE", telemetry: { provider: "aws", service: "secretsmanager" } }],
 ]);
 
 // ─── Client Factory ───────────────────────────────────────────────────────────
