@@ -857,7 +857,7 @@ export function S3Page() {
 
     // ── Delete resource ──
     function handleDeleteBucket(resource: CloudResource) {
-        if (!window.confirm(`Delete ${resourceLabel} "${resource.name}"?\n\nThe ${resourceLabel} must be empty. This cannot be undone.`)) return
+        if (!window.confirm(`Delete ${resourceLabel} "${resource.name}"?\n\nThis will also permanently delete all objects inside it. This cannot be undone.`)) return
         deleteBucketMutation.mutate(resource)
     }
 

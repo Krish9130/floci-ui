@@ -117,6 +117,31 @@ export function createS3Service(client: S3Client = awsClients.s3) {
     },
 
     async deleteBucket(bucket: string) {
+      try {
+        let isTruncated = true
+        let continuationToken: string | undefined = undefined
+
+        while (isTruncated) {
+          const listRes = await client.send(new ListObjectsV2Command({
+            Bucket: bucket,
+            ContinuationToken: continuationToken,
+          }))
+
+          if (listRes.Contents && listRes.Contents.length > 0) {
+            await Promise.all(
+              listRes.Contents.map(obj => 
+                obj.Key ? client.send(new DeleteObjectCommand({Bucket: bucket, Key: obj.Key})) : Promise.resolve()
+              )
+            )
+          }
+
+          isTruncated = listRes.IsTruncated ?? false
+          continuationToken = listRes.NextContinuationToken
+        }
+      } catch (err) {
+        // Ignore errors during emptying, let the DeleteBucketCommand fail if needed
+      }
+
       await client.send(new DeleteBucketCommand({ Bucket: bucket }));
     },
 
