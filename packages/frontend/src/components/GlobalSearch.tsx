@@ -84,7 +84,7 @@ export function GlobalSearch() {
   }
 
   return (
-    <div className="search-container" ref={containerRef} style={{ position: "relative" }}>
+    <div className="search-container" ref={containerRef} style={{ position: "relative", flex: 1, maxWidth: "480px" }}>
       <div
         className="search"
         onClick={() => {
