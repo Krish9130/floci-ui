@@ -117,6 +117,29 @@ export async function describeEksCluster(
   return res.data;
 }
 
+export async function createEksCluster(
+  params: { name: string; roleArn: string; resourcesVpcConfig: EksVpcConfig },
+  signal?: AbortSignal,
+): Promise<EksCluster> {
+  const res = await apiClient.call<EksCluster, typeof params>(
+    apiEndpointKeys.aws.eks.clusters.create,
+    { signal, body: params },
+  );
+  return res.data;
+}
+
+export async function deleteEksCluster(
+  name: string,
+  signal?: AbortSignal,
+): Promise<EksCluster> {
+  const res = await apiClient.call<EksCluster>(
+    apiEndpointKeys.aws.eks.clusters.delete,
+    { signal },
+    { name },
+  );
+  return res.data;
+}
+
 export async function listEksNodegroups(
   clusterName: string,
   signal?: AbortSignal,
@@ -248,6 +271,8 @@ export async function listEksResources(
 export const eksClient = {
   listClusters: listEksClusters,
   describeCluster: describeEksCluster,
+  createCluster: createEksCluster,
+  deleteCluster: deleteEksCluster,
   listNodegroups: listEksNodegroups,
   describeNodegroup: describeEksNodegroup,
   createNodegroup: createEksNodegroup,

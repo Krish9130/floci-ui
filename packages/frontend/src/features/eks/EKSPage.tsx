@@ -13,6 +13,9 @@ import {
   useEksClustersQuery,
   useEksNodegroupsQuery,
 } from "@/api/aws/eks.queries";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { eksClient } from "@/api/aws/eks.api";
+import { Loader2, Trash2, X } from "lucide-react";
 
 function statusClass(status?: string) {
   const normalized = status?.toLowerCase();
@@ -190,10 +193,150 @@ function NodegroupTable({ nodegroups }: { nodegroups: EksNodegroup[] }) {
   );
 }
 
+// ─── Create Modal ─────────────────────────────────────────────────────────────
+
+function CreateEKSModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [roleArn, setRoleArn] = useState("");
+  const [subnetIds, setSubnetIds] = useState("");
+  const [securityGroupIds, setSecurityGroupIds] = useState("");
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      eksClient.createCluster({
+        name,
+        roleArn,
+        resourcesVpcConfig: {
+          subnetIds: subnetIds.split(",").map((s) => s.trim()).filter(Boolean),
+          securityGroupIds: securityGroupIds.split(",").map((s) => s.trim()).filter(Boolean),
+          endpointPublicAccess: true,
+          endpointPrivateAccess: false,
+          publicAccessCidrs: ["0.0.0.0/0"],
+        },
+      }),
+    onSuccess: () => {
+      onCreated();
+      onClose();
+    },
+    onError: (err) =>
+      alert(`Create failed: ${err instanceof Error ? err.message : err}`),
+  });
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Create EKS cluster</h3>
+          <button className="icon-btn" onClick={onClose}>
+            <X size={14} />
+          </button>
+        </div>
+        <div
+          className="modal-body"
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        >
+          <div>
+            <label className="label">Cluster Name</label>
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="my-cluster"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="label">Role ARN</label>
+            <input
+              className="input"
+              value={roleArn}
+              onChange={(e) => setRoleArn(e.target.value)}
+              placeholder="arn:aws:iam::123456789012:role/eks-cluster-role"
+            />
+          </div>
+          <div>
+            <label className="label">Subnet IDs (comma separated)</label>
+            <input
+              className="input"
+              value={subnetIds}
+              onChange={(e) => setSubnetIds(e.target.value)}
+              placeholder="subnet-123, subnet-456"
+            />
+          </div>
+          <div>
+            <label className="label">Security Group IDs (comma separated)</label>
+            <input
+              className="input"
+              value={securityGroupIds}
+              onChange={(e) => setSecurityGroupIds(e.target.value)}
+              placeholder="sg-123, sg-456"
+            />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button
+            className="button"
+            onClick={onClose}
+            disabled={createMutation.isPending}
+          >
+            Cancel
+          </button>
+          <button
+            className="button primary"
+            onClick={() => createMutation.mutate()}
+            disabled={!name.trim() || !roleArn.trim() || createMutation.isPending}
+          >
+            {createMutation.isPending ? <Loader2 size={13} /> : "Create"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Lifecycle Actions ────────────────────────────────────────────────────────
+
+function ClusterLifecycleActions({ cluster }: { cluster: EksCluster }) {
+  const qc = useQueryClient();
+  
+  const deleteMutation = useMutation({
+    mutationFn: () => eksClient.deleteCluster(cluster.name),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["eks"] }),
+  });
+
+  const s = cluster.status?.toLowerCase();
+
+  return (
+    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+      <button
+        className="button danger"
+        style={{ marginLeft: "auto" }}
+        onClick={() => {
+          if (confirm(`Delete cluster ${cluster.name}?`)) {
+            deleteMutation.mutate();
+          }
+        }}
+        disabled={deleteMutation.isPending || s === "deleting"}
+      >
+        {deleteMutation.isPending ? <Loader2 size={13} /> : <Trash2 size={13} />} Delete
+      </button>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export function EKSPage() {
   const clustersQuery = useEksClustersQuery();
   const clusters = useMemo(() => clustersQuery.data ?? [], [clustersQuery.data]);
   const [selectedClusterName, setSelectedClusterName] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     if (!selectedClusterName && clusters[0]) {
@@ -217,18 +360,30 @@ export function EKSPage() {
             Kubernetes clusters
           </span>
         </div>
-        <button
-          className="button"
-          onClick={() => {
-            void clustersQuery.refetch();
-            void nodegroupsQuery.refetch();
-          }}
-          type="button"
-        >
-          <RefreshCw size={13} />
-          Refresh
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="button primary" onClick={() => setShowCreate(true)}>
+            Create cluster
+          </button>
+          <button
+            className="button"
+            onClick={() => {
+              void clustersQuery.refetch();
+              void nodegroupsQuery.refetch();
+            }}
+            type="button"
+          >
+            <RefreshCw size={13} />
+            Refresh
+          </button>
+        </div>
       </div>
+
+      {showCreate && (
+        <CreateEKSModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => void clustersQuery.refetch()}
+        />
+      )}
 
       <div className="split">
         <aside className="list-pane">
@@ -279,6 +434,9 @@ export function EKSPage() {
                   {selectedCluster.status ?? "unknown"}
                 </span>
               </div>
+
+              <ClusterLifecycleActions cluster={selectedCluster} />
+              <div style={{ marginBottom: 16 }} />
 
               <ClusterSummary cluster={selectedCluster} />
               <ClusterTags tags={selectedCluster.tags} />

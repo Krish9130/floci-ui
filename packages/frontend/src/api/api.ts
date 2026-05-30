@@ -85,6 +85,8 @@ export const apiEndpointKeys = {
       clusters: {
         list: "aws.eks.clusters.list",
         describe: "aws.eks.clusters.describe",
+        create: "aws.eks.clusters.create",
+        delete: "aws.eks.clusters.delete",
       },
       nodegroups: {
         list: "aws.eks.nodegroups.list",
@@ -103,6 +105,11 @@ export const apiEndpointKeys = {
       instances: {
         list: "aws.rds.instances.list",
         describe: "aws.rds.instances.describe",
+        create: "aws.rds.instances.create",
+        start: "aws.rds.instances.start",
+        stop: "aws.rds.instances.stop",
+        reboot: "aws.rds.instances.reboot",
+        delete: "aws.rds.instances.delete",
       },
       snapshots: {
         list: "aws.rds.snapshots.list",
@@ -519,6 +526,22 @@ export const endpointRegistry: EndpointRegistry = new Map([
     },
   ],
   [
+    apiEndpointKeys.aws.eks.clusters.create,
+    {
+      path: "/eks/clusters",
+      method: "POST",
+      telemetry: { provider: "aws", service: "eks" },
+    },
+  ],
+  [
+    apiEndpointKeys.aws.eks.clusters.delete,
+    {
+      path: "/eks/clusters/:name",
+      method: "DELETE",
+      telemetry: { provider: "aws", service: "eks" },
+    },
+  ],
+  [
     apiEndpointKeys.aws.eks.nodegroups.list,
     {
       path: "/eks/clusters/:name/nodegroups",
@@ -597,6 +620,46 @@ export const endpointRegistry: EndpointRegistry = new Map([
     {
       path: "/rds/instances/:identifier",
       method: "GET",
+      telemetry: { provider: "aws", service: "rds" },
+    },
+  ],
+  [
+    apiEndpointKeys.aws.rds.instances.create,
+    {
+      path: "/rds/instances",
+      method: "POST",
+      telemetry: { provider: "aws", service: "rds" },
+    },
+  ],
+  [
+    apiEndpointKeys.aws.rds.instances.start,
+    {
+      path: "/rds/instances/:identifier/start",
+      method: "POST",
+      telemetry: { provider: "aws", service: "rds" },
+    },
+  ],
+  [
+    apiEndpointKeys.aws.rds.instances.stop,
+    {
+      path: "/rds/instances/:identifier/stop",
+      method: "POST",
+      telemetry: { provider: "aws", service: "rds" },
+    },
+  ],
+  [
+    apiEndpointKeys.aws.rds.instances.reboot,
+    {
+      path: "/rds/instances/:identifier/reboot",
+      method: "POST",
+      telemetry: { provider: "aws", service: "rds" },
+    },
+  ],
+  [
+    apiEndpointKeys.aws.rds.instances.delete,
+    {
+      path: "/rds/instances/:identifier",
+      method: "DELETE",
       telemetry: { provider: "aws", service: "rds" },
     },
   ],

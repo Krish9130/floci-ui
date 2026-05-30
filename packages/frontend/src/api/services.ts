@@ -724,6 +724,19 @@ export async function deleteLambdaFunction(
   );
 }
 
+export async function createLambdaFunction(
+  name: string,
+  runtime: string,
+  signal?: AbortSignal,
+): Promise<{ name: string; arn: string }> {
+  return apiPost<{ name: string; arn: string }>(
+    "/lambda/functions",
+    "lambda",
+    { name, runtime },
+    signal,
+  );
+}
+
 // ─── DynamoDB ─────────────────────────────────────────────────────────────────
 
 export interface DynamoDbKeyAttr {

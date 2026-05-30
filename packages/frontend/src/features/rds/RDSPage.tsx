@@ -6,6 +6,9 @@ import {
   useRdsInstanceQuery,
   useRdsInstancesQuery,
 } from "@/api/aws/rds.queries";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { rdsClient } from "@/api/aws/rds.api";
+import { Loader2, Play, Square, RotateCcw, Trash2, X } from "lucide-react";
 
 function statusClass(status?: string) {
   const normalized = status?.toLowerCase();
@@ -184,10 +187,219 @@ function NetworkTable({ instance }: { instance: RdsInstance }) {
   );
 }
 
+// ─── Create Modal ─────────────────────────────────────────────────────────────
+
+function CreateRDSModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [identifier, setIdentifier] = useState("");
+  const [engine, setEngine] = useState("postgres");
+  const [instanceClass, setInstanceClass] = useState("db.t3.micro");
+  const [allocatedStorage, setAllocatedStorage] = useState("20");
+  const [masterUsername, setMasterUsername] = useState("postgres");
+  const [masterUserPassword, setMasterUserPassword] = useState("password123");
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      rdsClient.createInstance({
+        identifier,
+        engine,
+        instanceClass,
+        allocatedStorage: parseInt(allocatedStorage, 10),
+        masterUsername,
+        masterUserPassword,
+      }),
+    onSuccess: () => {
+      onCreated();
+      onClose();
+    },
+    onError: (err) =>
+      alert(`Create failed: ${err instanceof Error ? err.message : err}`),
+  });
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Create database</h3>
+          <button className="icon-btn" onClick={onClose}>
+            <X size={14} />
+          </button>
+        </div>
+        <div
+          className="modal-body"
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        >
+          <div>
+            <label className="label">DB Identifier</label>
+            <input
+              className="input"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="my-database"
+              autoFocus
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <label className="label">Engine</label>
+              <select
+                className="input"
+                value={engine}
+                onChange={(e) => setEngine(e.target.value)}
+              >
+                <option value="postgres">PostgreSQL</option>
+                <option value="mysql">MySQL</option>
+                <option value="mariadb">MariaDB</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Instance class</label>
+              <select
+                className="input"
+                value={instanceClass}
+                onChange={(e) => setInstanceClass(e.target.value)}
+              >
+                <option value="db.t3.micro">db.t3.micro</option>
+                <option value="db.t3.small">db.t3.small</option>
+                <option value="db.m5.large">db.m5.large</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <label className="label">Master username</label>
+              <input
+                className="input"
+                value={masterUsername}
+                onChange={(e) => setMasterUsername(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Master password</label>
+              <input
+                className="input"
+                type="password"
+                value={masterUserPassword}
+                onChange={(e) => setMasterUserPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="label">Allocated storage (GB)</label>
+            <input
+              className="input"
+              type="number"
+              value={allocatedStorage}
+              onChange={(e) => setAllocatedStorage(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button
+            className="button"
+            onClick={onClose}
+            disabled={createMutation.isPending}
+          >
+            Cancel
+          </button>
+          <button
+            className="button primary"
+            onClick={() => createMutation.mutate()}
+            disabled={!identifier.trim() || createMutation.isPending}
+          >
+            {createMutation.isPending ? <Loader2 size={13} /> : "Create"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Lifecycle Actions ────────────────────────────────────────────────────────
+
+function InstanceLifecycleActions({ instance }: { instance: RdsInstance }) {
+  const qc = useQueryClient();
+  
+  const startMutation = useMutation({
+    mutationFn: () => rdsClient.startInstance(instance.identifier),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rds"] }),
+  });
+
+  const stopMutation = useMutation({
+    mutationFn: () => rdsClient.stopInstance(instance.identifier),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rds"] }),
+  });
+
+  const rebootMutation = useMutation({
+    mutationFn: () => rdsClient.rebootInstance(instance.identifier),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rds"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => rdsClient.deleteInstance(instance.identifier),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rds"] }),
+  });
+
+  const s = instance.status?.toLowerCase();
+  const canStart = s === "stopped";
+  const canStop = s === "available";
+  const canReboot = s === "available";
+
+  return (
+    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+      {canStart && (
+        <button
+          className="button"
+          onClick={() => startMutation.mutate()}
+          disabled={startMutation.isPending}
+        >
+          {startMutation.isPending ? <Loader2 size={13} /> : <Play size={13} />} Start
+        </button>
+      )}
+      {canStop && (
+        <button
+          className="button"
+          onClick={() => stopMutation.mutate()}
+          disabled={stopMutation.isPending}
+        >
+          {stopMutation.isPending ? <Loader2 size={13} /> : <Square size={13} />} Stop
+        </button>
+      )}
+      {canReboot && (
+        <button
+          className="button"
+          onClick={() => rebootMutation.mutate()}
+          disabled={rebootMutation.isPending}
+        >
+          {rebootMutation.isPending ? <Loader2 size={13} /> : <RotateCcw size={13} />} Reboot
+        </button>
+      )}
+      <button
+        className="button danger"
+        style={{ marginLeft: "auto" }}
+        onClick={() => {
+          if (confirm(`Delete instance ${instance.identifier}?`)) {
+            deleteMutation.mutate();
+          }
+        }}
+        disabled={deleteMutation.isPending || s === "deleting"}
+      >
+        {deleteMutation.isPending ? <Loader2 size={13} /> : <Trash2 size={13} />} Delete
+      </button>
+    </div>
+  );
+}
+
 export function RDSPage() {
   const instancesQuery = useRdsInstancesQuery();
   const instances = useMemo(() => instancesQuery.data ?? [], [instancesQuery.data]);
   const [selectedIdentifier, setSelectedIdentifier] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     if (!selectedIdentifier && instances[0]) {
@@ -214,18 +426,30 @@ export function RDSPage() {
             Database instances
           </span>
         </div>
-        <button
-          className="button"
-          onClick={() => {
-            void instancesQuery.refetch();
-            void instanceQuery.refetch();
-          }}
-          type="button"
-        >
-          <RefreshCw size={13} />
-          Refresh
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="button primary" onClick={() => setShowCreate(true)}>
+            Create database
+          </button>
+          <button
+            className="button"
+            onClick={() => {
+              void instancesQuery.refetch();
+              void instanceQuery.refetch();
+            }}
+            type="button"
+          >
+            <RefreshCw size={13} />
+            Refresh
+          </button>
+        </div>
       </div>
+
+      {showCreate && (
+        <CreateRDSModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => void instancesQuery.refetch()}
+        />
+      )}
 
       <div className="split">
         <aside className="list-pane">
@@ -276,6 +500,8 @@ export function RDSPage() {
                   {selectedInstance.status ?? "unknown"}
                 </span>
               </div>
+              <InstanceLifecycleActions instance={selectedInstance} />
+              <div style={{ marginBottom: 16 }} />
 
               {instanceQuery.isError ? (
                 <EmptyState

@@ -1,7 +1,12 @@
 import {
+  CreateDBInstanceCommand,
   CreateDBSnapshotCommand,
+  DeleteDBInstanceCommand,
   DescribeDBInstancesCommand,
   DescribeDBSnapshotsCommand,
+  RebootDBInstanceCommand,
+  StartDBInstanceCommand,
+  StopDBInstanceCommand,
   type DBInstance,
   type DBSnapshot,
   type RDSClient,
@@ -189,6 +194,58 @@ export function createRdsService(client: RDSClient = awsClients.rds) {
         }),
       );
       return toRdsSnapshot(res.DBSnapshot ?? {});
+    },
+
+    async createInstance(params: {
+      identifier: string;
+      engine: string;
+      instanceClass: string;
+      allocatedStorage: number;
+      masterUsername: string;
+      masterUserPassword?: string;
+    }): Promise<RdsInstance> {
+      const res = await client.send(
+        new CreateDBInstanceCommand({
+          DBInstanceIdentifier: params.identifier,
+          Engine: params.engine,
+          DBInstanceClass: params.instanceClass,
+          AllocatedStorage: params.allocatedStorage,
+          MasterUsername: params.masterUsername,
+          MasterUserPassword: params.masterUserPassword || "password123", // fallback
+        })
+      );
+      return toRdsInstance(res.DBInstance ?? {} as DBInstance);
+    },
+
+    async startInstance(identifier: string): Promise<RdsInstance> {
+      const res = await client.send(
+        new StartDBInstanceCommand({ DBInstanceIdentifier: identifier })
+      );
+      return toRdsInstance(res.DBInstance ?? {} as DBInstance);
+    },
+
+    async stopInstance(identifier: string): Promise<RdsInstance> {
+      const res = await client.send(
+        new StopDBInstanceCommand({ DBInstanceIdentifier: identifier })
+      );
+      return toRdsInstance(res.DBInstance ?? {} as DBInstance);
+    },
+
+    async rebootInstance(identifier: string): Promise<RdsInstance> {
+      const res = await client.send(
+        new RebootDBInstanceCommand({ DBInstanceIdentifier: identifier })
+      );
+      return toRdsInstance(res.DBInstance ?? {} as DBInstance);
+    },
+
+    async deleteInstance(identifier: string, skipFinalSnapshot = true): Promise<RdsInstance> {
+      const res = await client.send(
+        new DeleteDBInstanceCommand({
+          DBInstanceIdentifier: identifier,
+          SkipFinalSnapshot: skipFinalSnapshot,
+        })
+      );
+      return toRdsInstance(res.DBInstance ?? {} as DBInstance);
     },
   };
 }

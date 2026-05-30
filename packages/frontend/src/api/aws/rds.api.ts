@@ -142,9 +142,80 @@ export async function listRdsResources(
   }));
 }
 
+export async function createRdsInstance(
+  params: {
+    identifier: string;
+    engine: string;
+    instanceClass: string;
+    allocatedStorage: number;
+    masterUsername: string;
+    masterUserPassword?: string;
+  },
+  signal?: AbortSignal,
+): Promise<RdsInstance> {
+  const res = await apiClient.call<RdsInstance, typeof params>(
+    apiEndpointKeys.aws.rds.instances.create,
+    { signal, body: params },
+  );
+  return res.data;
+}
+
+export async function startRdsInstance(
+  identifier: string,
+  signal?: AbortSignal,
+): Promise<RdsInstance> {
+  const res = await apiClient.call<RdsInstance>(
+    apiEndpointKeys.aws.rds.instances.start,
+    { signal },
+    { identifier },
+  );
+  return res.data;
+}
+
+export async function stopRdsInstance(
+  identifier: string,
+  signal?: AbortSignal,
+): Promise<RdsInstance> {
+  const res = await apiClient.call<RdsInstance>(
+    apiEndpointKeys.aws.rds.instances.stop,
+    { signal },
+    { identifier },
+  );
+  return res.data;
+}
+
+export async function rebootRdsInstance(
+  identifier: string,
+  signal?: AbortSignal,
+): Promise<RdsInstance> {
+  const res = await apiClient.call<RdsInstance>(
+    apiEndpointKeys.aws.rds.instances.reboot,
+    { signal },
+    { identifier },
+  );
+  return res.data;
+}
+
+export async function deleteRdsInstance(
+  identifier: string,
+  signal?: AbortSignal,
+): Promise<RdsInstance> {
+  const res = await apiClient.call<RdsInstance>(
+    apiEndpointKeys.aws.rds.instances.delete,
+    { signal },
+    { identifier },
+  );
+  return res.data;
+}
+
 export const rdsClient = {
   listInstances: listRdsInstances,
   describeInstance: describeRdsInstance,
+  createInstance: createRdsInstance,
+  startInstance: startRdsInstance,
+  stopInstance: stopRdsInstance,
+  rebootInstance: rebootRdsInstance,
+  deleteInstance: deleteRdsInstance,
   listSnapshots: listRdsSnapshots,
   createSnapshot: createRdsSnapshot,
   listResources: listRdsResources,

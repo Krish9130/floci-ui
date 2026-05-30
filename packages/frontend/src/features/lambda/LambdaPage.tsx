@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { EmptyState } from '@/components/EmptyState'
 import {
+  createLambdaFunction,
   deleteLambdaFunction,
   getLambdaFunction,
   invokeLambdaFunction,
@@ -489,11 +490,78 @@ function FunctionDrawer({
   )
 }
 
+// ─── Create Function Modal ──────────────────────────────────────────────────
+
+function CreateFunctionModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void
+  onCreated: () => void
+}) {
+  const [name, setName] = useState('')
+  const [runtime, setRuntime] = useState('nodejs20.x')
+
+  const createMutation = useMutation({
+    mutationFn: () => createLambdaFunction(name, runtime),
+    onSuccess: () => {
+      onCreated()
+      onClose()
+    },
+    onError: (err) => alert(`Create failed: ${err instanceof Error ? err.message : err}`),
+  })
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Create function</h3>
+          <button className="icon-btn" onClick={onClose}><X size={14} /></button>
+        </div>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label className="label">Function name</label>
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="my-function"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="label">Runtime</label>
+            <select className="input" value={runtime} onChange={(e) => setRuntime(e.target.value)}>
+              <option value="nodejs20.x">Node.js 20.x</option>
+              <option value="nodejs18.x">Node.js 18.x</option>
+              <option value="python3.12">Python 3.12</option>
+              <option value="python3.11">Python 3.11</option>
+              <option value="java21">Java 21</option>
+              <option value="go1.x">Go 1.x</option>
+            </select>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="button" onClick={onClose} disabled={createMutation.isPending}>Cancel</button>
+          <button
+            className="button primary"
+            onClick={() => createMutation.mutate()}
+            disabled={!name.trim() || createMutation.isPending}
+          >
+            {createMutation.isPending ? <Loader2 size={13} /> : 'Create'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function LambdaPage() {
   const [search, setSearch] = useState('')
   const [selectedFn, setSelectedFn] = useState<string | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
 
   const query = useQuery({
     queryKey: ['resources', 'lambda'],
@@ -520,6 +588,12 @@ export function LambdaPage() {
         onClose={() => setSelectedFn(null)}
         onDeleted={handleDeleted}
       />
+      {showCreate && (
+        <CreateFunctionModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => void query.refetch()}
+        />
+      )}
 
       <div className="page-header">
         <div className="page-title">
@@ -529,10 +603,15 @@ export function LambdaPage() {
             {query.data ? `${query.data.length} functions` : 'Serverless functions'}
           </span>
         </div>
-        <button className="button" onClick={() => void query.refetch()}>
-          <RefreshCw size={13} />
-          Refresh
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="button primary" onClick={() => setShowCreate(true)}>
+            Create function
+          </button>
+          <button className="button" onClick={() => void query.refetch()}>
+            <RefreshCw size={13} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="input-row">

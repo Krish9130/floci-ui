@@ -1,6 +1,8 @@
 import {
+  CreateClusterCommand,
   CreateFargateProfileCommand,
   CreateNodegroupCommand,
+  DeleteClusterCommand,
   DeleteFargateProfileCommand,
   DeleteNodegroupCommand,
   DescribeClusterCommand,
@@ -273,6 +275,26 @@ export function createEksService(client: EKSClient = awsClients.eks) {
 
     async describeCluster(name: string): Promise<EksCluster> {
       const res = await client.send(new DescribeClusterCommand({ name }));
+      return toEksCluster(res.cluster ?? {});
+    },
+
+    async createCluster(
+      name: string,
+      roleArn: string,
+      resourcesVpcConfig: EksVpcConfig
+    ): Promise<EksCluster> {
+      const res = await client.send(
+        new CreateClusterCommand({
+          name,
+          roleArn,
+          resourcesVpcConfig,
+        })
+      );
+      return toEksCluster(res.cluster ?? {});
+    },
+
+    async deleteCluster(name: string): Promise<EksCluster> {
+      const res = await client.send(new DeleteClusterCommand({ name }));
       return toEksCluster(res.cluster ?? {});
     },
 

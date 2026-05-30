@@ -11,6 +11,21 @@ app.get("/clusters/:name", async (c) => {
   return c.json(await eksService.describeCluster(c.req.param("name")));
 });
 
+app.post("/clusters", async (c) => {
+  const body = await c.req.json();
+  if (!body.name || !body.roleArn || !body.resourcesVpcConfig) {
+    return c.json({ error: "Missing required fields" }, 400);
+  }
+  return c.json(
+    await eksService.createCluster(body.name, body.roleArn, body.resourcesVpcConfig),
+    201
+  );
+});
+
+app.delete("/clusters/:name", async (c) => {
+  return c.json(await eksService.deleteCluster(c.req.param("name")));
+});
+
 app.get("/clusters/:name/nodegroups", async (c) => {
   return c.json(await eksService.listNodegroups(c.req.param("name")));
 });
