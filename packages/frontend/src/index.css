@@ -1814,10 +1814,17 @@ pre,
     justify-content: space-between;
     gap: 18px;
     border: 1px solid var(--border);
-    border-left-width: 3px;
-    border-radius: 4px;
-    background: var(--elevated);
-    padding: 16px;
+    border-left-width: 4px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--elevated) 0%, var(--surface-hover) 100%);
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.console-provider-banner:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
 }
 
 .console-provider-banner.ready {
@@ -1854,8 +1861,9 @@ pre,
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 8px;
     background: var(--elevated);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     overflow: hidden;
 }
 
@@ -1865,7 +1873,12 @@ pre,
     gap: 4px;
     min-height: 82px;
     border-right: 1px solid var(--border);
-    padding: 14px 16px;
+    padding: 16px 20px;
+    transition: background-color 0.2s ease;
+}
+
+.summary-tile:hover {
+    background-color: var(--surface-hover);
 }
 
 .summary-tile svg {
@@ -1919,8 +1932,9 @@ pre,
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0;
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 8px;
     background: var(--elevated);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     overflow: hidden;
 }
 
@@ -1935,7 +1949,12 @@ pre,
     align-content: center;
     min-height: 58px;
     border-right: 1px solid var(--border);
-    padding: 10px 14px;
+    padding: 12px 16px;
+    transition: background-color 0.2s ease;
+}
+
+.console-flow-step:hover {
+    background-color: var(--surface-hover);
 }
 
 .console-flow-step:last-child {
@@ -1989,11 +2008,20 @@ pre,
 .console-service-card {
     min-height: 150px;
     text-align: left;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 button.console-service-card {
     width: 100%;
     cursor: pointer;
+}
+
+button.console-service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    border-color: var(--primary);
 }
 
 .console-service-card.blocked {
