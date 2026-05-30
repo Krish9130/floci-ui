@@ -11,6 +11,7 @@ import {CloudExplorerPage} from '@/pages/CloudExplorerPage'
 import {CloudConsoleHomePage} from '@/pages/CloudConsoleHomePage'
 import {EKSPage} from '@/features/eks/EKSPage'
 import {RDSPage} from '@/features/rds/RDSPage'
+import {IAMPage} from '@/features/iam/IAMPage'
 
 export default function App() {
     return (
@@ -29,6 +30,7 @@ export default function App() {
                     <Route path="/lambda" element={<LambdaPage/>}/>
                     <Route path="/eks" element={<EKSPage/>}/>
                     <Route path="/rds" element={<RDSPage/>}/>
+                    <Route path="/iam" element={<IAMPage/>}/>
                     <Route path="/dynamodb" element={<DynamoDBPage/>}/>
                     <Route path="/sns" element={<SNSPage/>}/>
                     <Route path="/:service" element={<ServicePage/>}/>

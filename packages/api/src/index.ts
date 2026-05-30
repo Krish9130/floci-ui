@@ -12,6 +12,7 @@ import cloudwatch from "./routes/cloudwatch";
 import eks from "./routes/eks";
 import rds from "./routes/rds";
 import ec2 from "./routes/ec2";
+import iam from "./routes/iam";
 import clouds from "./routes/clouds";
 const app = new Hono();
 
@@ -27,6 +28,7 @@ app.route("/api/cloudwatch", cloudwatch);
 app.route("/api/eks", eks);
 app.route("/api/rds", rds);
 app.route("/api/ec2", ec2);
+app.route("/api/iam", iam);
 app.route("/api/clouds", clouds);
 
 // Serve static frontend files when public/ directory is present (production)

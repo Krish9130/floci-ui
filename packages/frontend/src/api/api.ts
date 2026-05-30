@@ -192,6 +192,17 @@ export const apiEndpointKeys = {
       instanceTypes: "aws.ec2.instance-types",
       vpcWizard: "aws.ec2.vpc-wizard",
     },
+    iam: {
+      roles: {
+        list: "aws.iam.roles.list",
+      },
+      users: {
+        list: "aws.iam.users.list",
+      },
+      policies: {
+        list: "aws.iam.policies.list",
+      },
+    },
   },
 } as const;
 
@@ -735,7 +746,9 @@ export const endpointRegistry: EndpointRegistry = new Map([
   [apiEndpointKeys.aws.ec2.availabilityZones, { path: "/ec2/availability-zones", method: "GET", telemetry: { provider: "aws", service: "ec2" } }],
   [apiEndpointKeys.aws.ec2.instanceTypes,     { path: "/ec2/instance-types", method: "GET", telemetry: { provider: "aws", service: "ec2" } }],
   [apiEndpointKeys.aws.ec2.vpcWizard,         { path: "/ec2/vpc-wizard", method: "POST", telemetry: { provider: "aws", service: "ec2" } }],
-
+  [apiEndpointKeys.aws.iam.roles.list,        { path: "/iam/roles", method: "GET", telemetry: { provider: "aws", service: "iam" } }],
+  [apiEndpointKeys.aws.iam.users.list,        { path: "/iam/users", method: "GET", telemetry: { provider: "aws", service: "iam" } }],
+  [apiEndpointKeys.aws.iam.policies.list,     { path: "/iam/policies", method: "GET", telemetry: { provider: "aws", service: "iam" } }],
 ]);
 
 // ─── Client Factory ───────────────────────────────────────────────────────────

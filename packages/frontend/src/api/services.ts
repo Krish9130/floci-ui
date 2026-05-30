@@ -106,7 +106,7 @@ export const SERVICE_META: Array<{
     name: "iam",
     displayName: "IAM",
     route: "/iam",
-    implemented: false,
+    implemented: true,
     resourceLabel: "roles",
   },
   {
