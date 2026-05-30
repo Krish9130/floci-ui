@@ -10,10 +10,10 @@ logs:
 	docker compose logs -f
 
 build:
-	docker build -t floci/floci-ui:latest .
+	docker build -t krish9130/floci-ui:latest .
 
 push: build
-	docker push floci/floci-ui:latest
+	docker push krish9130/floci-ui:latest
 
 install:
 	cd packages/frontend && npm install

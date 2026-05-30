@@ -1,6 +1,6 @@
 services:
   floci-ui:
-    image: floci/floci-ui:latest
+    image: krish9130/floci-ui:latest
     ports:
       - "4560:3000"
     environment:
