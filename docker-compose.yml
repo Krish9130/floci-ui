@@ -1,0 +1,33 @@
+services:
+  floci-ui:
+    image: floci/floci-ui:latest
+    ports:
+      - "4560:3000"
+    environment:
+      FLOCI_ENDPOINT: http://floci:4566
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    depends_on:
+      - floci
+    networks:
+      - floci_default
+
+  floci:
+    image: floci/floci:latest-compat
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./data:/app/data
+      - ./init/ready.d:/etc/floci/init/ready.d:ro
+      - ./init/files:/etc/floci/init/files:ro
+    environment:
+      FLOCI_STORAGE_MODE: persistent
+    networks:
+      floci_default:
+        aliases:
+          - localhost.floci.io
+
+networks:
+  floci_default:
+    name: floci_default
